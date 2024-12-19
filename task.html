@@ -151,7 +151,7 @@
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            max-height: 60px;
+            max-height: 80px;
             overflow-y: auto;
             word-wrap: break-word;
         }
@@ -160,17 +160,6 @@
             transform: translateY(-5px);
         }
 
-        .priority-high {
-            border-left: 5px solid #080808c2;
-        }
-
-        .priority-medium {
-            border-left: 5px solid #030303be;
-        }
-
-        .priority-low {
-            border-left: 5px solid #080808be;
-        }
 
         .task-buttons {
             display: flex;
@@ -185,6 +174,11 @@
             border-radius: 5px;
             cursor: pointer;
             background-color: #0e0d0dbe;
+            color: white;
+        }
+
+        .btn:hover {
+            background-color: #0d0e0d;
             color: white;
         }
 
@@ -245,6 +239,133 @@
                 d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334" />
         </svg>
     </footer>
+    <script>
+        const apiKey = "VfZ87k5aw1weHu4vwfy87neiiZl3UwZzXdUJsX0L";
+        const cohereEndpoint = "https://api.cohere.ai/classify";
+        const taskContainer = document.getElementById("taskContainer");
+        const taskInput = document.getElementById("taskInput");
+        const taskForm = document.getElementById("taskForm");
+        const priorityLinks = document.querySelectorAll("header a");
+
+        let tasks = [];
+
+        function saveTasks() {
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            if (tasks.length > 0) {
+                document.querySelector('.main-container').classList.add('task-added');
+            }
+            displayTasks(tasks);
+        }
+
+        async function classifyTask(taskDescription) {
+            try {
+                const response = await fetch(cohereEndpoint, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${apiKey}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        inputs: [taskDescription],
+                        examples: [
+                            { text: "Submit the project report today", label: "High" },
+                            { text: "Prepare for the client meeting tomorrow", label: "High" },
+                            { text: "Clean the desk", label: "Low" },
+                            { text: "Reply to emails", label: "Medium" },
+                            { text: "Organize files", label: "Low" },
+                            { text: "Review the quarterly performance", label: "Medium" },
+                        ],
+                    }),
+                });
+
+                const data = await response.json();
+                return data.classifications[0].prediction;
+            } catch (error) {
+                console.error("Error:", error);
+                return "Error";
+            }
+        }
+
+        function createTaskCard(text, priority) {
+            const taskCard = document.createElement("div");
+            taskCard.className = `task-card priority-${priority.toLowerCase()}`;
+            taskCard.innerHTML = `
+            <span>Task: ${text} | Priority: ${priority}</span>
+            <div class="task-buttons">
+              <button class="btn btn-complete">Complete</button>
+              <button class="btn btn-update">Update</button>
+              <button class="btn btn-delete">Delete</button>
+            </div>
+          `;
+
+            taskContainer.appendChild(taskCard);
+
+            const deleteButton = taskCard.querySelector(".btn-delete");
+            deleteButton.addEventListener("click", () => {
+                tasks = tasks.filter(task => task.text !== text);
+                taskCard.remove();
+                saveTasks();
+            });
+
+            const completeButton = taskCard.querySelector(".btn-complete");
+            completeButton.addEventListener("click", () => {
+                taskCard.style.textDecoration = "line-through";
+                taskCard.style.opacity = "0.6";
+            });
+
+            const updateButton = taskCard.querySelector(".btn-update");
+            updateButton.addEventListener("click", () => {
+                const newTask = prompt("Update your task:", text);
+                if (newTask) {
+                    taskCard.querySelector("span").textContent = `Task: ${newTask} | Priority: ${priority}`;
+                    tasks = tasks.map(task => task.text === text ? { ...task, text: newTask } : task);
+                    saveTasks();
+                }
+            });
+        }
+
+        function displayTasks(filteredTasks) {
+            taskContainer.innerHTML = "";
+            filteredTasks.forEach(task => createTaskCard(task.text, task.priority));
+        }
+
+
+        function filterTasks(priority) {
+            if (priority === "all") {
+                displayTasks(tasks);
+            } else {
+                const filtered = tasks.filter(task => task.priority.toLowerCase() === priority);
+                displayTasks(filtered);
+            }
+        }
+
+
+        priorityLinks.forEach(link => {
+            link.addEventListener("click", (event) => {
+                event.preventDefault();
+                const priority = link.getAttribute("data-priority");
+                filterTasks(priority);
+            });
+        });
+
+        taskForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const taskText = taskInput.value;
+            const priority = await classifyTask(taskText);
+            const newTask = { text: taskText, priority };
+            tasks.push(newTask);
+            createTaskCard(taskText, priority);
+            saveTasks();
+            taskInput.value = "";
+        });
+
+
+        window.onload = loadTasks;
+    </script>
 
 </body>
 
