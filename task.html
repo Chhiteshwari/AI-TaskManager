@@ -50,7 +50,6 @@
             background-color: #080808a1;
             color: #fff;
             text-align: center;
-            padding: 7px 0;
             font-family: Arial, sans-serif;
             margin-top: auto;
         }
@@ -131,7 +130,7 @@
         }
 
         .task-scroll-container {
-            height: 420px;
+            height: 400px;
             overflow-y: auto;
             margin-top: 20px;
             padding: 10px;
@@ -151,7 +150,7 @@
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            max-height: 80px;
+            max-height: 100px;
             overflow-y: auto;
             word-wrap: break-word;
         }
@@ -312,7 +311,6 @@
       taskCard.innerHTML = `
         <span>Task: ${text} | Priority: ${priority}</span>
         <div class="task-buttons">
-          <button class="btn btn-complete">Complete</button>
           <button class="btn btn-update">Update</button>
           <button class="btn btn-delete">Delete</button>
         </div>
@@ -326,12 +324,6 @@
         taskCard.remove();
         saveTasks();
         toggleEmptyState();
-      });
-
-      const completeButton = taskCard.querySelector(".btn-complete");
-      completeButton.addEventListener("click", () => {
-        taskCard.style.textDecoration = "line-through";
-        taskCard.style.opacity = "0.6";
       });
 
       const updateButton = taskCard.querySelector(".btn-update");
