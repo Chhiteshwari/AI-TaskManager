@@ -51,13 +51,11 @@
             margin-top: auto;
         }
 
-        /* Footer text styling */
         footer p {
             font-size: 1.2rem;
-            
+
         }
 
-        /* Icon container styling */
         footer svg {
             margin: 0 10px;
             width: 30px;
@@ -67,13 +65,125 @@
             transition: transform 0.3s ease, fill 0.3s ease;
         }
 
-        /* Hover effects for icons */
         footer svg:hover {
             transform: scale(1.2);
-            fill: #fdfbfb; /* Light blue for hover effect */
+            fill: #fdfbfb;
         }
 
-        /* Responsive styles for smaller screens */
+        .main-container {
+            width: 70%;
+            max-width: 800px;
+            margin: 7% auto;
+            padding: 20px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.712);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            min-height: 250px;
+
+        }
+
+
+        .main-container.task-added {
+            height: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #030303;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            width: 82%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            height: auto;
+            margin: 0;
+        }
+
+        button {
+            padding: 2px 10px 2px 10px;
+            background-color: #030303b0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0d0e0d;
+        }
+
+        .task-scroll-container {
+            height: 420px;
+            overflow-y: auto;
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        .task-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .task-card {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-height: 60px;
+            overflow-y: auto;
+            word-wrap: break-word;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .priority-high {
+            border-left: 5px solid #080808c2;
+        }
+
+        .priority-medium {
+            border-left: 5px solid #030303be;
+        }
+
+        .priority-low {
+            border-left: 5px solid #080808be;
+        }
+
+        .task-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #0e0d0dbe;
+            color: white;
+        }
+
         @media (max-width: 600px) {
             footer {
                 padding: 15px 10px;
@@ -100,6 +210,18 @@
         <a href="#" data-priority="medium">Medium</a>
         <a href="#" data-priority="high">High</a>
     </header>
+
+    <div class="main-container">
+        <h1>AI Task Manager with Smart Suggestions</h1>
+        <form id="taskForm">
+            <input type="text" id="taskInput" placeholder="Enter task" required>
+            <button type="submit">Add Task</button>
+        </form>
+
+        <div class="task-scroll-container">
+            <div class="task-container" id="taskContainer"></div>
+        </div>
+    </div>
 
     <footer>
         <p>Task Manager</p>
