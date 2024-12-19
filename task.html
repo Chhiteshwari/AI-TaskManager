@@ -212,14 +212,17 @@
     <div class="main-container">
         <h1>AI Task Manager with Smart Suggestions</h1>
         <form id="taskForm">
-            <input type="text" id="taskInput" placeholder="Enter task" required>
-            <button type="submit">Add Task</button>
+          <input type="text" id="taskInput" placeholder="Enter your task" required>
+          <button type="submit">Add Task</button>
         </form>
+    
+        <img id="emptyTasksImage" src="imageForTask.png" alt="No Tasks"
+          style="display: none; width: 100%; max-width: 500px; margin: 20px auto; display: block;" />
 
         <div class="task-scroll-container">
-            <div class="task-container" id="taskContainer"></div>
+          <div class="task-container" id="taskContainer"></div>
         </div>
-    </div>
+      </div>
 
     <footer>
         <p>Task Manager</p>
@@ -240,133 +243,147 @@
         </svg>
     </footer>
     <script>
-        const apiKey = "VfZ87k5aw1weHu4vwfy87neiiZl3UwZzXdUJsX0L";
-        const cohereEndpoint = "https://api.cohere.ai/classify";
-        const taskContainer = document.getElementById("taskContainer");
-        const taskInput = document.getElementById("taskInput");
-        const taskForm = document.getElementById("taskForm");
-        const priorityLinks = document.querySelectorAll("header a");
+    const apiKey = "VfZ87k5aw1weHu4vwfy87neiiZl3UwZzXdUJsX0L"; 
+    const cohereEndpoint = "https://api.cohere.ai/classify";
+    const taskContainer = document.getElementById("taskContainer");
+    const taskInput = document.getElementById("taskInput");
+    const taskForm = document.getElementById("taskForm");
+    const priorityLinks = document.querySelectorAll("header a");
 
-        let tasks = [];
+    let tasks = [];
 
-        function saveTasks() {
-            localStorage.setItem("tasks", JSON.stringify(tasks));
-        }
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
 
-        function loadTasks() {
-            tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-            if (tasks.length > 0) {
-                document.querySelector('.main-container').classList.add('task-added');
-            }
-            displayTasks(tasks);
-        }
+    function toggleEmptyState() {
+      const emptyTasksImage = document.getElementById("emptyTasksImage");
+      const taskScrollContainer = document.querySelector(".task-scroll-container");
 
-        async function classifyTask(taskDescription) {
-            try {
-                const response = await fetch(cohereEndpoint, {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${apiKey}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        inputs: [taskDescription],
-                        examples: [
-                            { text: "Submit the project report today", label: "High" },
-                            { text: "Prepare for the client meeting tomorrow", label: "High" },
-                            { text: "Clean the desk", label: "Low" },
-                            { text: "Reply to emails", label: "Medium" },
-                            { text: "Organize files", label: "Low" },
-                            { text: "Review the quarterly performance", label: "Medium" },
-                        ],
-                    }),
-                });
+      if (tasks.length === 0) {
+        emptyTasksImage.style.display = "block"; 
+        taskScrollContainer.style.display = "none"; 
+      } else {
+        emptyTasksImage.style.display = "none"; 
+        taskScrollContainer.style.display = "block";
+      }
+    }
 
-                const data = await response.json();
-                return data.classifications[0].prediction;
-            } catch (error) {
-                console.error("Error:", error);
-                return "Error";
-            }
-        }
+    function loadTasks() {
+      tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+      if (tasks.length > 0) {
+        document.querySelector('.main-container').classList.add('task-added');
+      }
+      displayTasks(tasks); 
+    }
 
-        function createTaskCard(text, priority) {
-            const taskCard = document.createElement("div");
-            taskCard.className = `task-card priority-${priority.toLowerCase()}`;
-            taskCard.innerHTML = `
-            <span>Task: ${text} | Priority: ${priority}</span>
-            <div class="task-buttons">
-              <button class="btn btn-complete">Complete</button>
-              <button class="btn btn-update">Update</button>
-              <button class="btn btn-delete">Delete</button>
-            </div>
-          `;
-
-            taskContainer.appendChild(taskCard);
-
-            const deleteButton = taskCard.querySelector(".btn-delete");
-            deleteButton.addEventListener("click", () => {
-                tasks = tasks.filter(task => task.text !== text);
-                taskCard.remove();
-                saveTasks();
-            });
-
-            const completeButton = taskCard.querySelector(".btn-complete");
-            completeButton.addEventListener("click", () => {
-                taskCard.style.textDecoration = "line-through";
-                taskCard.style.opacity = "0.6";
-            });
-
-            const updateButton = taskCard.querySelector(".btn-update");
-            updateButton.addEventListener("click", () => {
-                const newTask = prompt("Update your task:", text);
-                if (newTask) {
-                    taskCard.querySelector("span").textContent = `Task: ${newTask} | Priority: ${priority}`;
-                    tasks = tasks.map(task => task.text === text ? { ...task, text: newTask } : task);
-                    saveTasks();
-                }
-            });
-        }
-
-        function displayTasks(filteredTasks) {
-            taskContainer.innerHTML = "";
-            filteredTasks.forEach(task => createTaskCard(task.text, task.priority));
-        }
-
-
-        function filterTasks(priority) {
-            if (priority === "all") {
-                displayTasks(tasks);
-            } else {
-                const filtered = tasks.filter(task => task.priority.toLowerCase() === priority);
-                displayTasks(filtered);
-            }
-        }
-
-
-        priorityLinks.forEach(link => {
-            link.addEventListener("click", (event) => {
-                event.preventDefault();
-                const priority = link.getAttribute("data-priority");
-                filterTasks(priority);
-            });
+    async function classifyTask(taskDescription) {
+      try {
+        const response = await fetch(cohereEndpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            inputs: [taskDescription],
+            examples: [
+              { text: "Submit the project report today", label: "High" },
+              { text: "Prepare for the client meeting tomorrow", label: "High" },
+              { text: "Clean the desk", label: "Low" },
+              { text: "Reply to emails", label: "Medium" },
+              { text: "Organize files", label: "Low" },
+              { text: "Review the quarterly performance", label: "Medium" },
+            ],
+          }),
         });
 
-        taskForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            const taskText = taskInput.value;
-            const priority = await classifyTask(taskText);
-            const newTask = { text: taskText, priority };
-            tasks.push(newTask);
-            createTaskCard(taskText, priority);
-            saveTasks();
-            taskInput.value = "";
-        });
+        const data = await response.json();
+        return data.classifications[0].prediction;
+      } catch (error) {
+        console.error("Error:", error);
+        return "Error";
+      }
+    }
 
+    function createTaskCard(text, priority) {
+      const taskCard = document.createElement("div");
+      taskCard.className = `task-card priority-${priority.toLowerCase()}`;
+      taskCard.innerHTML = `
+        <span>Task: ${text} | Priority: ${priority}</span>
+        <div class="task-buttons">
+          <button class="btn btn-complete">Complete</button>
+          <button class="btn btn-update">Update</button>
+          <button class="btn btn-delete">Delete</button>
+        </div>
+      `;
 
-        window.onload = loadTasks;
-    </script>
+      taskContainer.appendChild(taskCard);
 
+      const deleteButton = taskCard.querySelector(".btn-delete");
+      deleteButton.addEventListener("click", () => {
+        tasks = tasks.filter(task => task.text !== text); 
+        taskCard.remove();
+        saveTasks();
+        toggleEmptyState();
+      });
+
+      const completeButton = taskCard.querySelector(".btn-complete");
+      completeButton.addEventListener("click", () => {
+        taskCard.style.textDecoration = "line-through";
+        taskCard.style.opacity = "0.6";
+      });
+
+      const updateButton = taskCard.querySelector(".btn-update");
+      updateButton.addEventListener("click", () => {
+        const newTask = prompt("Update your task:", text);
+        if (newTask) {
+          taskCard.querySelector("span").textContent = `Task: ${newTask} | Priority: ${priority}`;
+          tasks = tasks.map(task => task.text === text ? { ...task, text: newTask } : task);
+          saveTasks();
+        }
+      });
+
+      toggleEmptyState();
+    }
+
+    function displayTasks(filteredTasks) {
+      taskContainer.innerHTML = ""; 
+      filteredTasks.forEach(task => createTaskCard(task.text, task.priority));
+      toggleEmptyState();
+    }
+
+    
+    function filterTasks(priority) {
+      if (priority === "all") {
+        displayTasks(tasks);
+      } else {
+        const filtered = tasks.filter(task => task.priority.toLowerCase() === priority);
+        displayTasks(filtered);
+      }
+    }
+
+    priorityLinks.forEach(link => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        const priority = link.getAttribute("data-priority");
+        filterTasks(priority);
+      });
+    });
+
+    taskForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const taskText = taskInput.value;
+      const priority = await classifyTask(taskText);
+      const newTask = { text: taskText, priority };
+      tasks.push(newTask);
+      createTaskCard(taskText, priority);
+      saveTasks();
+      taskInput.value = "";
+    });
+
+    window.onload = loadTasks;
+  </script>
 </body>
 
 </html>
